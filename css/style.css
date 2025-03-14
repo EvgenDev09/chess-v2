@@ -19,7 +19,7 @@ body, p {
 	justify-content: center;
 	align-items: center;
 	flex-direction: column;
-	gap: 15px;
+	gap: 20px;
 }
 
 #header, #footer {
@@ -46,18 +46,63 @@ body, p {
 
 #main {
 	flex-grow: 1;
+	width: 100%;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	overflow: auto;
-	width: 1300px;
-	max-width: 100%;
+}
+
+#main.is-vertical {
+	padding: 0;
+}
+
+#container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 50px;
+	height: 100%;
 	box-sizing: border-box;
+}
+
+#main.is-vertical #container {
+	flex-direction: column;
+}
+
+.chess-moves.vertical {
+	width: 100%;
+	aspect-ratio: 11/1;
+	background-color: rgba(255, 255, 255, 0.3);
+}
+
+.chess-buttons.vertical {
+	width: 100%;
+	aspect-ratio: 11/1;
+	background-color: rgba(255, 255, 255, 0.3);
+}
+
+#main.is-vertical .horizontal {
+	display: none;
+}
+
+#main:not(.is-vertical) .vertical {
+	display: none;
 }
 
 #chess-board {
 	background-color: rgba(255, 255, 255, 0.3);
 	aspect-ratio: 1/1;
+	height: 100%;
+}
+
+#main.is-vertical #chess-board {
 	width: 100%;
+	height: auto;
+}
+
+#chess-info {
+	background-color: rgba(255, 255, 255, 0.3);
+	aspect-ratio: 2/3;
 	height: 100%;
 }

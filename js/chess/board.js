@@ -1,15 +1,48 @@
 let mainContainer = $("#main");
-let chessBoard = $("#chess-board");
+let chessContainer = $("#container");
+let header = $("#header");
+let footer = $("#footer");
+let headerHeight = header.height();
+let headerFont = header.css("font-size");
+let footerFont = footer.css("font-size");
+let chessGap1 = chessContainer.css("gap");
+let chessGap2 = "20px";
+setChessGap();
+let chessAspectRatio = chessContainer.width() / chessContainer.height();
+setHeaderSize();
 
-function setBoardSize() {
-  if (mainContainer.width() > mainContainer.height()) {
-    chessBoard.width('auto');
-    chessBoard.height('100%');
-  } else {
-    chessBoard.width('100%');
-    chessBoard.height('auto');
-  }
+function setChessGap() {
+	let chessChangeRatio = chessContainer.height() / 800;
+	let chessGap = `calc(${mainContainer.hasClass("is-vertical") ? chessGap2 : chessGap1} * ${chessChangeRatio})`;
+	chessContainer.css({"gap": chessGap});
 }
 
-$(document).ready(setBoardSize);
-$(window).on("resize", setBoardSize);
+function setHeaderSize() {
+	let windowRatio = $(window).height() / 950;
+	header.height(`calc(${headerHeight}px * ${windowRatio})`);
+	header.css({"font-size": `calc(${headerFont} * ${windowRatio})`});
+	footer.height(`calc(${headerHeight}px * ${windowRatio})`);
+	footer.css({"font-size": `calc(${footerFont} * ${windowRatio})`});
+}
+
+function setChessSize() {
+	setHeaderSize();
+	let mainAspectRatio = mainContainer.width() / mainContainer.height();
+	if (mainAspectRatio < 4/5) {
+		mainContainer.addClass("is-vertical");
+		chessContainer.width('100%');
+		chessContainer.height('100%');
+	} else {
+		mainContainer.removeClass("is-vertical");
+		chessContainer.width('');
+		if (mainAspectRatio > chessAspectRatio) {
+			chessContainer.height('100%');
+		} else {
+			chessContainer.height(`calc(100% * ${mainAspectRatio / chessAspectRatio})`);
+		}
+	}
+	setChessGap();
+}
+
+$(document).ready(setChessSize);
+$(window).on("resize", setChessSize);
