@@ -6,6 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>CHESS by Evgen09</title>
 	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/board.css">
 </head>
 <body>
 	<div id="background">
@@ -16,11 +17,44 @@
 			<div id="container">
 				<div class="chess-moves vertical"></div>
 				<div id="chess-board">
-
+					<div id="chess-squares"></div>
+					<div id="chess-pieces"></div>
 				</div>
 				<div class="chess-buttons vertical"></div>
 				<div id="chess-info" class="horizontal">
-
+					<div id="chess-info-main">
+						<div id="chess-info-process">
+							<div id="chess-info-process-text">Game in process...</div>
+							<div id="chess-info-restart-button" class="chess-info-button"><div class="chess-button-icon"></div>Play Again</div>
+						</div>
+						<div id="chess-info-players">
+							<div class="chess-info-player">
+								<div class="chess-info-player-move"></div>
+								<div class="chess-info-player-text">Player</div>
+								<div class="chess-info-button chess-info-computer-button"><div class="chess-button-icon"></div>Computer Mode</div>
+							</div>
+							<div class="chess-info-player">
+								<div class="chess-info-player-move"></div>
+								<div class="chess-info-player-text">Player</div>
+								<div class="chess-info-button chess-info-computer-button"><div class="chess-button-icon"></div>Computer Mode</div>
+							</div>
+						</div>
+					</div>
+					<div id="chess-info-moves">
+						<div id="chess-info-moves-container"></div>
+						<div id="chess-info-moves-buttons">
+							<div id="chess-info-button chess-info-moves-start" class="chess-info-button"><div class="chess-button-icon"></div></div>
+							<div id="chess-info-button chess-info-moves-back" class="chess-info-button"><div class="chess-button-icon"></div></div>
+							<div id="chess-info-button chess-info-moves-forward" class="chess-info-button"><div class="chess-button-icon"></div></div>
+							<div id="chess-info-button chess-info-moves-end" class="chess-info-button"><div class="chess-button-icon"></div></div>
+						</div>
+					</div>
+					<div id="chess-info-buttons">
+						<div id="chess-info-rotate-board" class="chess-info-button"><div class="chess-button-icon"></div>Rotate Board</div>
+						<div id="chess-info-rotate-pieces" class="chess-info-button"><div class="chess-button-icon"></div>Rotate Pieces</div>
+						<a id="chess-info-telegram" class="chess-info-button"><div class="chess-button-icon"></div></a>
+						<a id="chess-info-github" class="chess-info-button"><div class="chess-button-icon"></div></a>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -29,6 +63,8 @@
 		</div>
 	</div>
 	<script src="js/other/jquery-3.7.1.min.js"></script>
+	<script src="js/chess/position.js"></script>
 	<script src="js/chess/board.js"></script>
+	<script src="js/chess/script.js"></script>
 </body>
 </html>

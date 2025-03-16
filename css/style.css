@@ -2,6 +2,8 @@ body {
 	font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 	background: black;
 	--background: url("../img/backgrounds/forest.png");
+	--info-color: #444444;
+	--info-bg: linear-gradient(to bottom right, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.2));
 }
 
 body, p {
@@ -11,7 +13,6 @@ body, p {
 #background {
 	width: 100%;
 	height: 100vh;
-	background-color: white;
 	background-image: var(--background);
 	background-size: cover;
 	background-position: 50% 50%;
@@ -73,13 +74,15 @@ body, p {
 .chess-moves.vertical {
 	width: 100%;
 	aspect-ratio: 11/1;
-	background-color: rgba(255, 255, 255, 0.3);
+	background-color: var(--info-color);
+	background-image: var(--info-bg);
 }
 
 .chess-buttons.vertical {
 	width: 100%;
 	aspect-ratio: 11/1;
-	background-color: rgba(255, 255, 255, 0.3);
+	background-color: var(--info-color);
+	background-image: var(--info-bg);
 }
 
 #main.is-vertical .horizontal {
@@ -91,8 +94,6 @@ body, p {
 }
 
 #chess-board {
-	background-color: rgba(255, 255, 255, 0.3);
-	aspect-ratio: 1/1;
 	height: 100%;
 }
 
@@ -102,7 +103,78 @@ body, p {
 }
 
 #chess-info {
-	background-color: rgba(255, 255, 255, 0.3);
+	background-color: var(--info-color);
+	background-image: var(--info-bg);
 	aspect-ratio: 2/3;
 	height: 100%;
+	border-radius: var(--board-radius);
+	color: white;
+	--size-ratio: 1;
+}
+
+#chess-info-main {
+	display: flex;
+	flex-direction: column;
+	gap: calc(10px * var(--size-ratio));
+	padding: calc(10px * var(--size-ratio)) 0;
+}
+
+#chess-info-process {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	gap: calc(10px * var(--size-ratio));
+	padding: 0 calc(10px * var(--size-ratio));
+}
+
+#chess-info-process-text {
+	font-size: calc(30px * var(--size-ratio));
+	text-transform: capitalize;
+	font-variant: small-caps;
+}
+
+.chess-info-button {
+	font-size: calc(20px * var(--size-ratio));
+	text-transform: capitalize;
+	font-variant: small-caps;
+	padding: calc(5px * var(--size-ratio));
+	background-color: #333333;
+	color: white;
+	background-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.05));
+	border-radius: calc(10px * var(--size-ratio));
+}
+
+#chess-info-players {
+	display: flex;
+	flex-direction: column;
+}
+
+.chess-info-player {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding: calc(4px * var(--size-ratio)) calc(10px * var(--size-ratio)) calc(4px * var(--size-ratio)) calc(15px * var(--size-ratio));
+	gap: calc(8px * var(--size-ratio));
+}
+
+.chess-info-player-move {
+	width: calc(12px * var(--size-ratio));
+	height: calc(12px * var(--size-ratio));
+	border-radius: 50%;
+	background-color: #ffd100;
+}
+
+.chess-info-player-text {
+	flex-grow: 1;
+	font-size: calc(20px * var(--size-ratio));
+}
+
+.chess-info-player:nth-child(1) {
+	background-image: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+	color: black;
+}
+
+.chess-info-player:nth-child(2) {
+	background-image: linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
+	color: white;
 }

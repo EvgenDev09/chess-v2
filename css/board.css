@@ -1,0 +1,67 @@
+body {
+	--board-radius: 20px;
+	--chess-squares: url(../img/squares/classic.png);
+	--chess-pieces: url(../img/pieces/classic.png);
+}
+
+#chess-board {
+	aspect-ratio: 1/1;
+	position: relative;
+}
+
+#chess-board > * {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+}
+
+#chess-squares {
+	display: grid;
+	grid-template-columns: repeat(8, 1fr);
+	grid-template-rows: repeat(8, 1fr);
+}
+
+.chess-square {
+	width: 100%;
+	height: 100%;
+    background-image: var(--chess-squares);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: calc(100% / 7 * var(--img-index)) 0;
+}
+
+.chess-square.light-square { --img-index: 1; }
+.chess-square.dark-square { --img-index: 0; }
+
+.chess-square:nth-child(1) { border-top-left-radius: var(--board-radius); }
+.chess-square:nth-child(8) { border-top-right-radius: var(--board-radius); }
+.chess-square:nth-child(57) { border-bottom-left-radius: var(--board-radius); }
+.chess-square:nth-child(64) { border-bottom-right-radius: var(--board-radius); }
+
+.chess-piece {
+	width: calc(100% / 8);
+	height: calc(100% / 8);
+    background-image: var(--chess-pieces);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: calc(100% / 11 * var(--img-index)) 0;
+	position: absolute;
+	--row: 0;
+	--column: 0;
+	bottom: calc(100% / 8 * var(--row));
+	left: calc(100% / 8 * var(--column));
+}
+
+.chess-piece.light-pawn { --img-index: 0; }
+.chess-piece.light-knight { --img-index: 1; }
+.chess-piece.light-bishop { --img-index: 2; }
+.chess-piece.light-rook { --img-index: 3; }
+.chess-piece.light-queen { --img-index: 4; }
+.chess-piece.light-king { --img-index: 5; }
+.chess-piece.dark-pawn { --img-index: 6; }
+.chess-piece.dark-knight { --img-index: 7; }
+.chess-piece.dark-bishop { --img-index: 8; }
+.chess-piece.dark-rook { --img-index: 9; }
+.chess-piece.dark-queen { --img-index: 10; }
+.chess-piece.dark-king { --img-index: 11; }

@@ -1,48 +1,25 @@
-let mainContainer = $("#main");
-let chessContainer = $("#container");
-let header = $("#header");
-let footer = $("#footer");
-let headerHeight = header.height();
-let headerFont = header.css("font-size");
-let footerFont = footer.css("font-size");
-let chessGap1 = chessContainer.css("gap");
-let chessGap2 = "20px";
-setChessGap();
-let chessAspectRatio = chessContainer.width() / chessContainer.height();
-setHeaderSize();
+let chessSquares = $("#chess-squares");
+let chessPieces = $("#chess-pieces");
+let position = new ChessPosition();
 
-function setChessGap() {
-	let chessChangeRatio = chessContainer.height() / 800;
-	let chessGap = `calc(${mainContainer.hasClass("is-vertical") ? chessGap2 : chessGap1} * ${chessChangeRatio})`;
-	chessContainer.css({"gap": chessGap});
-}
-
-function setHeaderSize() {
-	let windowRatio = $(window).height() / 950;
-	header.height(`calc(${headerHeight}px * ${windowRatio})`);
-	header.css({"font-size": `calc(${headerFont} * ${windowRatio})`});
-	footer.height(`calc(${headerHeight}px * ${windowRatio})`);
-	footer.css({"font-size": `calc(${footerFont} * ${windowRatio})`});
-}
-
-function setChessSize() {
-	setHeaderSize();
-	let mainAspectRatio = mainContainer.width() / mainContainer.height();
-	if (mainAspectRatio < 4/5) {
-		mainContainer.addClass("is-vertical");
-		chessContainer.width('100%');
-		chessContainer.height('100%');
-	} else {
-		mainContainer.removeClass("is-vertical");
-		chessContainer.width('');
-		if (mainAspectRatio > chessAspectRatio) {
-			chessContainer.height('100%');
-		} else {
-			chessContainer.height(`calc(100% * ${mainAspectRatio / chessAspectRatio})`);
+function setPosition(pos) {
+	let pieceClasses = ["pawn", "knight", "bishop", "rook", "queen", "king"];
+	for (let i=0; i<8; i++) {
+		for (let j=0; j<8; j++) {
+			if (pos.board[i][j] != 0) {
+				let piece = $(`<div class="chess-piece ${(pos.board[i][j] < 0) ? "dark" : "light"}-${pieceClasses[Math.abs(pos.board[i][j])-1]}"></div>`);
+				piece.css({"--row": i, "--column": j});
+				chessPieces.append(piece);
+			}
 		}
 	}
-	setChessGap();
 }
 
-$(document).ready(setChessSize);
-$(window).on("resize", setChessSize);
+$(document).ready(function() {
+	for (let i=8-1; i>=0; i--) {
+		for (let j=0; j<8; j++) {
+			chessSquares.append($(`<div class="chess-square ${((i+j) % 2 == 0) ? "dark" : "light"}-square"></div>`));
+		}
+	}
+	setPosition(position);
+});
