@@ -1,9 +1,15 @@
+html {
+	-ms-touch-action: manipulation;
+	touch-action: manipulation;
+}
+
 body {
 	font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 	background: black;
 	--background: url("../img/backgrounds/forest.png");
 	--info-color: #444444;
 	--info-bg: linear-gradient(to bottom right, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.2));
+	overflow: hidden;
 }
 
 body, p {

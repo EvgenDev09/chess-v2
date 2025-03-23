@@ -54,7 +54,18 @@ function setChessSize() {
 	setChessGap();
 }
 
-$(document).ready(function() {
+function recalculateStyle() {
+	document.documentElement.className = 'reflow_' + (new Date()).getTime();
+}
+
+$(function() {
+	boardStart();
+	setChessSize();
+	recalculateStyle();
 	setChessSize();
 });
-$(window).on("resize", setChessSize);
+$(window).on("resize", function() {
+	setChessSize();
+	recalculateStyle();
+	setChessSize();
+});

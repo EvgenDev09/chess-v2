@@ -14,6 +14,7 @@ body {
 	width: 100%;
 	height: 100%;
 	top: 0;
+	pointer-events: none;
 }
 
 #chess-squares {
@@ -29,10 +30,21 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
     background-position: calc(100% / 7 * var(--img-index)) 0;
+	pointer-events: all;
+}
+
+.chess-square.chess-square-droppable {
+	cursor: pointer;
 }
 
 .chess-square.light-square { --img-index: 1; }
 .chess-square.dark-square { --img-index: 0; }
+
+.chess-square.chess-square-highlighted.light-square { --img-index: 3; }
+.chess-square.chess-square-highlighted.dark-square { --img-index: 2; }
+
+.chess-square.chess-square-droppable.light-square { --img-index: 5; }
+.chess-square.chess-square-droppable.dark-square { --img-index: 4; }
 
 .chess-square:nth-child(1) { border-top-left-radius: var(--board-radius); }
 .chess-square:nth-child(8) { border-top-right-radius: var(--board-radius); }
@@ -51,6 +63,8 @@ body {
 	--column: 0;
 	bottom: calc(100% / 8 * var(--row));
 	left: calc(100% / 8 * var(--column));
+	pointer-events: all;
+	cursor: pointer;
 }
 
 .chess-piece.light-pawn { --img-index: 0; }
