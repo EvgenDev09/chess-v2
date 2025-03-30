@@ -25,8 +25,9 @@ function setPosition(pos) {
 
 function unhighlightDroppableSquares() {
 	$(".chess-square").removeClass("chess-square-droppable");
-	if (lastPiece[0] > -1)
+	if (lastPiece[0] > -1) {
 		$(".chess-square").eq((7-lastPiece[0])*8 + lastPiece[1]).removeClass("chess-square-highlighted");
+	}
 	lastPiece = [-1, -1];
 }
 
@@ -47,7 +48,6 @@ function makeMove(fromX, fromY, toX, toY) {
 	$(".chess-square").eq((7-fromX)*8 + fromY).addClass("chess-square-highlighted");
 	$(".chess-square").eq((7-toX)*8 + toY).addClass("chess-square-highlighted");
 	position.makeMove(fromX, fromY, toX, toY);
-	pieceElements[fromX][fromY].css({"left": "", "top": ""});
 	pieceElements[fromX][fromY].css({"--row": toX, "--column": toY});
 	if (pieceElements[toX][toY]) {
 		pieceElements[toX][toY].css({"display": "none"});
@@ -67,7 +67,8 @@ function boardStart() {
 	$(".chess-piece").draggable({
 		containment: "parent",
 		delay: 0,
-		start: function(event) {
+		cursorAt: [0, 0],
+		start: function(event, ui) {
 			let row = Math.round($(this).css("--row"));
 			let column = Math.round($(this).css("--column"));
 			if ((position.moveColor == 0) != (position.board[row][column] > 0)) {
@@ -75,6 +76,9 @@ function boardStart() {
 			} else {
 				highlightDroppableSquares(row, column);
 			}
+		},
+		stop: function(event, ui) {
+			$(this).css({"left": "", "top": ""});
 		},
 		revert: function(event) {
 			if (!event) return true;
@@ -99,9 +103,9 @@ function boardStart() {
 		stack: ".chess-piece"
 	});
 
-	$(".chess-piece").on('click', function(event) {
-		let row = Math.round($(this).css("--row"));
-		let column = Math.round($(this).css("--column"));
+	function chessPieceClick(event) {
+		let row = Math.round($(event.target).css("--row"));
+		let column = Math.round($(event.target).css("--column"));
 		if ((position.moveColor == 0) != (position.board[row][column] > 0)) {
 			if ($(".chess-square").eq((7-row)*8 + column).hasClass("chess-square-droppable")) {
 				makeMove(lastPiece[0], lastPiece[1], row, column);
@@ -113,7 +117,13 @@ function boardStart() {
 			else
 				highlightDroppableSquares(row, column);
 		}
+	}
+
+	$(".chess-piece").on('click', function(event) {
+		if (!("ontouchstart" in window))
+			chessPieceClick(event);
 	});
+	$(".chess-piece").on('touchend', chessPieceClick);
 	
 	$(".chess-square").droppable({
 		scope: "chess"
