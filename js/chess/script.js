@@ -51,13 +51,8 @@ function setChessSize() {
 		body.css({"--board-radius": `calc(${boardRadius} * ${chessContainer.height() / 800})`});
 		chessInfo.css({"--size-ratio": `${chessContainer.height() / 800}`});
 	}
-	$(".chess-piece").each(function() {
-		$(this).draggable("option", "cursorAt", {
-			left: Math.floor($(this).width() / 2),
-			top: Math.floor($(this).height() / 2)
-		});
-	});
 	setChessGap();
+	resizePieces();
 }
 
 function recalculateStyle() {

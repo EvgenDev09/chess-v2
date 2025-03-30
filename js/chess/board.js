@@ -11,7 +11,7 @@ function setPosition(pos) {
 		pieceElementsRow = [];
 		for (let j=0; j<8; j++) {
 			if (pos.board[i][j] != 0) {
-				let piece = $(`<div class="chess-piece ${(pos.board[i][j] < 0) ? "dark" : "light"}-${pieceClasses[Math.abs(pos.board[i][j])-1]}"></div>`);
+				let piece = $(`<div class="chess-piece ${(pos.board[i][j] < 0) ? "dark" : "light"}-${pieceClasses[Math.abs(pos.board[i][j])-1]}"><div></div></div>`);
 				piece.css({"--row": i, "--column": j});
 				chessPieces.append(piece);
 				pieceElementsRow.push(piece);
@@ -21,6 +21,7 @@ function setPosition(pos) {
 		}
 		pieceElements.push(pieceElementsRow);
 	}
+	checkCheck();
 }
 
 function unhighlightDroppableSquares() {
@@ -52,8 +53,42 @@ function makeMove(fromX, fromY, toX, toY) {
 	if (pieceElements[toX][toY]) {
 		pieceElements[toX][toY].css({"display": "none"});
 	}
+	if (fromY != toY && pieceElements[fromX][toY] && position.board[fromX][toY] == 0) {
+		pieceElements[fromX][toY].css({"display": "none"});
+		pieceElements[fromX][toY] = null;
+	}
+	if (Math.abs(position.board[toX][toY]) == 6) {
+		if (toY - fromY == 2) {
+			pieceElements[toX][7].css({"--row": toX, "--column": 5});
+			pieceElements[toX][5] = pieceElements[toX][7];
+			pieceElements[toX][7] = null;
+		}
+		if (toY - fromY == -2) {
+			pieceElements[toX][0].css({"--row": toX, "--column": 3});
+			pieceElements[toX][3] = pieceElements[toX][0];
+			pieceElements[toX][0] = null;
+		}
+	}
 	pieceElements[toX][toY] = pieceElements[fromX][fromY];
 	pieceElements[fromX][fromY] = null;
+	checkCheck();
+}
+
+function checkCheck() {
+	if (position.isChecked()) {
+		let piece = ".chess-piece.dark-king";
+		if (position.moveColor == 0) {
+			piece = ".chess-piece.light-king";
+		}
+		$("#chess-check-square").detach().prependTo(piece);
+		$("#chess-check-square").css({
+			"display": "block"
+		});
+	} else {
+		$("#chess-check-square").css({
+			"display": "none"
+		});
+	}
 }
 
 function boardStart() {
@@ -62,6 +97,7 @@ function boardStart() {
 			chessSquares.append($(`<div class="chess-square ${((i+j) % 2 == 0) ? "dark" : "light"}-square"></div>`));
 		}
 	}
+	chessPieces.append($(`<div id="chess-check-square"></div>`));
 	setPosition(position);
 
 	$(".chess-piece").draggable({
@@ -137,5 +173,17 @@ function boardStart() {
 			makeMove(lastPiece[0], lastPiece[1], 7-toX, toY);
 			unhighlightDroppableSquares();
 		}
+	});
+}
+
+function resizePieces() {
+	$(".chess-piece").each(function() {
+		$(this).draggable("option", "cursorAt", {
+			left: Math.floor($(this).width() / 2),
+			top: Math.floor($(this).height() / 2)
+		});
+	});
+	$("#chess-check-square").css({
+		"box-shadow": `0px 0px ${$(".chess-square").eq(0).width()/Math.sqrt(8)}px ${$(".chess-square").eq(0).width()/Math.sqrt(8)}px red`
 	});
 }

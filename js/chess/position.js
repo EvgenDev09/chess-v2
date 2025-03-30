@@ -1,6 +1,8 @@
 class ChessPosition {
 	board;
 	moveColor = 0;
+	enPassant = -1;
+	castling = [true, true, true, true];
 	#possibleMoves = [];
 	calculatedMoves = false;
 	constructor() {
@@ -15,6 +17,8 @@ class ChessPosition {
 			[-4, -2, -3, -5, -6, -3, -2, -4],
 		]
 		this.moveColor = 0;
+		this.enPassant = -1;
+		this.castling = [true, true, true, true];
 	}
 
 	#calculateAllMoves(color) {
@@ -33,10 +37,10 @@ class ChessPosition {
 										moves.push([[i, j], [i+2, j]]);
 									}
 								}
-								if (j > 0 && this.board[i+1][j-1] < 0) {
+								if (j > 0 && (this.board[i+1][j-1] < 0 || (this.enPassant == j-1 && i==4))) {
 									moves.push([[i, j], [i+1, j-1]]);
 								}
-								if (j < 7 && this.board[i+1][j+1] < 0) {
+								if (j < 7 && (this.board[i+1][j+1] < 0 || (this.enPassant == j+1 && i==4))) {
 									moves.push([[i, j], [i+1, j+1]]);
 								}
 							}
@@ -48,10 +52,10 @@ class ChessPosition {
 										moves.push([[i, j], [i-2, j]]);
 									}
 								}
-								if (j > 0 && this.board[i-1][j-1] > 0) {
+								if (j > 0 && (this.board[i-1][j-1] > 0 || (this.enPassant == j-1 && i==3))) {
 									moves.push([[i, j], [i-1, j-1]]);
 								}
-								if (j < 7 && this.board[i-1][j+1] > 0) {
+								if (j < 7 && (this.board[i-1][j+1] > 0 || (this.enPassant == j+1 && i==3))) {
 									moves.push([[i, j], [i-1, j+1]]);
 								}
 							}
@@ -139,6 +143,45 @@ class ChessPosition {
 								) moves.push([[i, j], [i2, j2]]);
 							}
 						}
+						if (color == 0) {
+							if (this.castling[0]) {
+								if (this.board[0][5] == 0 && this.board[0][6] == 0) {
+									this.board[0][5] = this.board[0][6] = 6;
+									if (!this.#isChecked(color)) {
+										moves.push([[i, j], [0, 6]]);
+									}
+									this.board[0][5] = this.board[0][6] = 0;
+								}
+							}
+							if (this.castling[1]) {
+								if (this.board[0][1] == 0 && this.board[0][2] == 0 && this.board[0][3] == 0) {
+									this.board[0][2] = this.board[0][3] = 6;
+									if (!this.#isChecked(color)) {
+										moves.push([[i, j], [0, 2]]);
+									}
+									this.board[0][2] = this.board[0][3] = 0;
+								}
+							}
+						} else {
+							if (this.castling[2]) {
+								if (this.board[7][5] == 0 && this.board[7][6] == 0) {
+									this.board[7][5] = this.board[7][6] = -6;
+									if (!this.#isChecked(color)) {
+										moves.push([[i, j], [7, 6]]);
+									}
+									this.board[7][5] = this.board[7][6] = 0;
+								}
+							}
+							if (this.castling[3]) {
+								if (this.board[7][1] == 0 && this.board[7][2] == 0 && this.board[7][3] == 0) {
+									this.board[7][2] = this.board[7][3] = -6;
+									if (!this.#isChecked(color)) {
+										moves.push([[i, j], [7, 2]]);
+									}
+									this.board[7][2] = this.board[7][3] = 0;
+								}
+							}
+						}
 						break;
 				}
 			}
@@ -151,6 +194,10 @@ class ChessPosition {
 		return moves.some((move) => (this.board[move[1][0]][move[1][1]] == 6 * ((1-color)*2 - 1)));
 	}
 
+	isChecked() {
+		return this.#isChecked(this.moveColor); 
+	}
+
 	copyPosition() {
 		let newPosition = new ChessPosition();
 		for (let i=0; i<8; i++) {
@@ -159,10 +206,56 @@ class ChessPosition {
 			}
 		}
 		newPosition.moveColor = this.moveColor;
+		newPosition.enPassant = this.enPassant;
+		for (let i=0; i<4; i++) {
+			newPosition.castling[i] = this.castling[i];
+		}
 		return newPosition;
 	}
 
 	makeMove(fromX, fromY, toX, toY) {
+		if (Math.abs(this.board[fromX][fromY]) == 1 && fromY != toY && this.board[toX][toY] == 0) {
+			this.board[fromX][toY] = 0;
+		}
+		if (Math.abs(this.board[fromX][fromY]) == 1 && Math.abs(fromX - toX) == 2) {
+			this.enPassant = fromY;
+		} else {
+			this.enPassant = -1;
+		}
+		if (this.board[fromX][fromY] == 4) {
+			if (fromX == 0 && fromY == 7)
+				this.castling[0] = false;
+			if (fromX == 0 && fromY == 0)
+				this.castling[1] = false;
+		}
+		if (this.board[fromX][fromY] == -4) {
+			if (fromX == 7 && fromY == 7)
+				this.castling[2] = false;
+			if (fromX == 7 && fromY == 0)
+				this.castling[3] = false;
+		}
+		if (this.board[fromX][fromY] == 6) {
+			this.castling[0] = this.castling[1] = false;
+			if (toY - fromY == 2) {
+				this.board[toX][7] = 0;
+				this.board[toX][5] = 4;
+			}
+			if (toY - fromY == -2) {
+				this.board[toX][0] = 0;
+				this.board[toX][3] = 4;
+			}
+		}
+		if (this.board[fromX][fromY] == -6) {
+			this.castling[2] = this.castling[3] = false;
+			if (toY - fromY == 2) {
+				this.board[toX][7] = 0;
+				this.board[toX][5] = -4;
+			}
+			if (toY - fromY == -2) {
+				this.board[toX][0] = 0;
+				this.board[toX][3] = -4;
+			}
+		}
 		this.board[toX][toY] = this.board[fromX][fromY];
 		this.board[fromX][fromY] = 0;
 		this.moveColor = (1 - this.moveColor);
