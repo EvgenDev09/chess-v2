@@ -223,6 +223,20 @@ body, p {
 #chess-info-moves-container {
 	background-color: rgba(0, 0, 0, 0.5);
 	flex-grow: 1;
+	flex-shrink: 1;
+	height: 0;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	overflow-y: auto;
+	grid-auto-rows: min-content;
+}
+
+#chess-info-moves-container .chess-info-move {
+	background-color: rgba(255, 255, 255, 0.02);
+	background-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.05));
+	border: calc(1px * var(--size-ratio)) #444444 solid;
+	padding: calc(8px * var(--size-ratio));
+	font-size: calc(20px * var(--size-ratio));
 }
 
 #chess-info-moves-buttons {

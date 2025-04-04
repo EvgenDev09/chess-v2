@@ -198,6 +198,10 @@ class ChessPosition {
 		return this.#isChecked(this.moveColor); 
 	}
 
+	isMated() {
+		return this.isChecked() && (this.getPossibleMoves().length == 0);
+	}
+
 	copyPosition() {
 		let newPosition = new ChessPosition();
 		for (let i=0; i<8; i++) {
@@ -213,7 +217,7 @@ class ChessPosition {
 		return newPosition;
 	}
 
-	makeMove(fromX, fromY, toX, toY) {
+	makeMove(fromX, fromY, toX, toY, become=0) {
 		if (Math.abs(this.board[fromX][fromY]) == 1 && fromY != toY && this.board[toX][toY] == 0) {
 			this.board[fromX][toY] = 0;
 		}
@@ -257,9 +261,58 @@ class ChessPosition {
 			}
 		}
 		this.board[toX][toY] = this.board[fromX][fromY];
+		if (become != 0) {
+			this.board[toX][toY] = become;
+		}
 		this.board[fromX][fromY] = 0;
 		this.moveColor = (1 - this.moveColor);
 		this.calculatedMoves = false;
+	}
+
+	getMoveNotation(fromX, fromY, toX, toY, become=0) {
+		let pieceSymbols = ["", "♞", "♝", "♜", "♛", "♚"];
+		let columnSymbols = ["a", "b", "c", "d", "e", "f", "g", "h"];
+		let rowSymbols = ["1", "2", "3", "4", "5", "6", "7", "8"];
+		let moveStr = pieceSymbols[Math.abs(this.board[fromX][fromY]) - 1];
+		if (Math.abs(this.board[fromX][fromY]) == 1) {
+			if (fromY != toY) {
+				moveStr += columnSymbols[fromY] + "x" + columnSymbols[toY] + rowSymbols[toX];
+			} else {
+				moveStr += columnSymbols[toY] + rowSymbols[toX];
+			}
+		} else {
+			let moves = this.#calculateAllMoves(this.moveColor);
+			let hasSameColumn = false, hasSameRow = false;
+			for (let i=0; i<moves.length; i++) {
+				if (toX != moves[i][1][0] || toY != moves[i][1][1]) continue;
+				if (this.board[fromX][fromY] != this.board[moves[i][0][0]][moves[i][0][1]]) continue;
+				if (fromX == moves[i][0][0] && fromY == moves[i][0][1]) continue;
+				if (fromX == moves[i][0][0]) hasSameRow = true;
+				if (fromY == moves[i][0][1]) hasSameColumn = true;
+				if (hasSameRow && hasSameColumn) break;
+			}
+			if (hasSameRow) {
+				moveStr += columnSymbols[fromY];
+				if (hasSameColumn) moveStr += rowSymbols[fromX];
+			}
+			if (this.board[toX][toY] != 0) {
+				moveStr += "x";
+			}
+			moveStr += columnSymbols[toY] + rowSymbols[toX];
+		}
+		if (become != 0) {
+			moveStr += "=" + pieceSymbols[Math.abs(become)-1];
+		}
+		let newPosition = this.copyPosition();
+		newPosition.makeMove(fromX, fromY, toX, toY, become);
+		if (newPosition.isChecked()) {
+			if (newPosition.isMated()) {
+				moveStr += "#";
+			} else {
+				moveStr += "+";
+			}
+		}
+		return moveStr;
 	}
 
 	getPossibleMoves() {

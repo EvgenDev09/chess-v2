@@ -23,6 +23,14 @@ body {
 	grid-template-rows: repeat(8, 1fr);
 }
 
+#chess-pieces, .chess-piece {
+	z-index: 2;
+}
+
+#chess-promotion, #chess-promotion-white, #chess-promotion-black {
+	z-index: 3;
+}
+
 .chess-square {
 	width: 100%;
 	height: 100%;
@@ -40,8 +48,10 @@ body {
 .chess-square.light-square { --img-index: 1; }
 .chess-square.dark-square { --img-index: 0; }
 
-.chess-square.chess-square-highlighted.light-square { --img-index: 3; }
-.chess-square.chess-square-highlighted.dark-square { --img-index: 2; }
+.chess-square.chess-square-highlighted.light-square,
+.chess-square.chess-square-highlighted-current.light-square { --img-index: 3; }
+.chess-square.chess-square-highlighted.dark-square,
+.chess-square.chess-square-highlighted-current.dark-square { --img-index: 2; }
 
 .chess-square.chess-square-droppable.light-square { --img-index: 5; }
 .chess-square.chess-square-droppable.dark-square { --img-index: 4; }
@@ -86,14 +96,67 @@ body {
 }
 
 .chess-piece.light-pawn { --img-index: 0; }
-.chess-piece.light-knight { --img-index: 1; }
-.chess-piece.light-bishop { --img-index: 2; }
-.chess-piece.light-rook { --img-index: 3; }
-.chess-piece.light-queen { --img-index: 4; }
+.chess-piece.light-knight, #chess-promotion-white .chess-promotion-knight { --img-index: 1; }
+.chess-piece.light-bishop, #chess-promotion-white .chess-promotion-bishop { --img-index: 2; }
+.chess-piece.light-rook, #chess-promotion-white .chess-promotion-rook { --img-index: 3; }
+.chess-piece.light-queen, #chess-promotion-white .chess-promotion-queen { --img-index: 4; }
 .chess-piece.light-king { --img-index: 5; }
 .chess-piece.dark-pawn { --img-index: 6; }
-.chess-piece.dark-knight { --img-index: 7; }
-.chess-piece.dark-bishop { --img-index: 8; }
-.chess-piece.dark-rook { --img-index: 9; }
-.chess-piece.dark-queen { --img-index: 10; }
+.chess-piece.dark-knight, #chess-promotion-black .chess-promotion-knight { --img-index: 7; }
+.chess-piece.dark-bishop, #chess-promotion-black .chess-promotion-bishop { --img-index: 8; }
+.chess-piece.dark-rook, #chess-promotion-black .chess-promotion-rook { --img-index: 9; }
+.chess-piece.dark-queen, #chess-promotion-black .chess-promotion-queen { --img-index: 10; }
 .chess-piece.dark-king { --img-index: 11; }
+
+#chess-promotion-white, #chess-promotion-black {
+    position: absolute;
+    width: 12.5%;
+    height: 62.5%;
+    border-radius: var(--board-radius);
+	left: calc(100% / 8 * var(--column));
+    background-color: white;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.75);
+	pointer-events: all;
+}
+
+#chess-promotion-white {
+    top: 0;
+    flex-direction: column;
+}
+
+#chess-promotion-black {
+    bottom: 0;
+    flex-direction: column-reverse;
+}
+
+.chess-promotion-piece, .chess-promotion-cancel {
+    width: 100%;
+    height: 100%;
+    background-size: 100%;
+    cursor: pointer;
+}
+
+.chess-promotion-piece {
+    background-image: var(--chess-pieces);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: calc(100% / 11 * var(--img-index)) 0;
+	cursor: pointer;
+}
+
+.chess-promotion-cancel {
+    background-color: #e0e0e0;
+    background-image: url("../img/icons/cross.png");
+	cursor: pointer;
+}
+
+#chess-promotion-white .chess-promotion-cancel {
+    border-radius: 0px 0px var(--board-radius) var(--board-radius);
+}
+
+#chess-promotion-black .chess-promotion-cancel {
+    border-radius: var(--board-radius) var(--board-radius) 0px 0px;
+}
