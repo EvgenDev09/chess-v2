@@ -55,7 +55,7 @@ function makeMove(fromX, fromY, toX, toY) {
 	if (pieceElements[toX][toY]) {
 		pieceElements[toX][toY].css({"display": "none"});
 	}
-	if (Math.abs(position.board[toX][toY]) == 6) {
+	if (Math.abs(position.board[fromX][fromY]) == 6) {
 		if (toY - fromY == 2) {
 			pieceElements[toX][7].css({"--row": toX, "--column": 5});
 			pieceElements[toX][5] = pieceElements[toX][7];
@@ -188,11 +188,8 @@ function boardStart() {
 			if (promotionMove[0] != 0) return false;
 			let row = Math.round($(this).css("--row"));
 			let column = Math.round($(this).css("--column"));
-			if ((position.moveColor == 0) != (position.board[row][column] > 0)) {
-				unhighlightDroppableSquares();
-			} else {
-				highlightDroppableSquares(row, column);
-			}
+			if ((position.moveColor == 0) != (position.board[row][column] > 0)) return false;
+			highlightDroppableSquares(row, column);
 		},
 		stop: function(event, ui) {
 			$(this).css({"left": "", "top": ""});

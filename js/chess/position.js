@@ -270,6 +270,10 @@ class ChessPosition {
 	}
 
 	getMoveNotation(fromX, fromY, toX, toY, become=0) {
+		if (Math.abs(this.board[fromX][fromY] == 6)) {
+			if (toY - fromY == 2) return "0-0";
+			if (toY - fromY == -2) return "0-0-0";
+		}
 		let pieceSymbols = ["", "♞", "♝", "♜", "♛", "♚"];
 		let columnSymbols = ["a", "b", "c", "d", "e", "f", "g", "h"];
 		let rowSymbols = ["1", "2", "3", "4", "5", "6", "7", "8"];
@@ -282,18 +286,23 @@ class ChessPosition {
 			}
 		} else {
 			let moves = this.#calculateAllMoves(this.moveColor);
-			let hasSameColumn = false, hasSameRow = false;
+			let hasOtherMoves = false, hasSameColumn = false, hasSameRow = false;
 			for (let i=0; i<moves.length; i++) {
 				if (toX != moves[i][1][0] || toY != moves[i][1][1]) continue;
 				if (this.board[fromX][fromY] != this.board[moves[i][0][0]][moves[i][0][1]]) continue;
 				if (fromX == moves[i][0][0] && fromY == moves[i][0][1]) continue;
+				hasOtherMoves = true;
 				if (fromX == moves[i][0][0]) hasSameRow = true;
 				if (fromY == moves[i][0][1]) hasSameColumn = true;
 				if (hasSameRow && hasSameColumn) break;
 			}
-			if (hasSameRow) {
-				moveStr += columnSymbols[fromY];
-				if (hasSameColumn) moveStr += rowSymbols[fromX];
+			if (hasOtherMoves) {
+				if (hasSameColumn) {
+					if (hasSameRow) moveStr += columnSymbols[fromY];
+					moveStr += rowSymbols[fromX];
+				} else {
+					moveStr += columnSymbols[fromY];
+				}
 			}
 			if (this.board[toX][toY] != 0) {
 				moveStr += "x";
