@@ -198,8 +198,16 @@ class ChessPosition {
 		return this.#isChecked(this.moveColor); 
 	}
 
-	isMated() {
-		return this.isChecked() && (this.getPossibleMoves().length == 0);
+	hasLegalMoves() {
+		return this.getPossibleMoves().length != 0;
+	}
+
+	isCheckmated() {
+		return this.isChecked() && !this.hasLegalMoves();
+	}
+
+	isStalemated() {
+		return !this.isChecked() && !this.hasLegalMoves();
 	}
 
 	copyPosition() {
@@ -315,7 +323,7 @@ class ChessPosition {
 		let newPosition = this.copyPosition();
 		newPosition.makeMove(fromX, fromY, toX, toY, become);
 		if (newPosition.isChecked()) {
-			if (newPosition.isMated()) {
+			if (newPosition.isCheckmated()) {
 				moveStr += "#";
 			} else {
 				moveStr += "+";

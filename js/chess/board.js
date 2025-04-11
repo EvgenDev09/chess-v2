@@ -1,6 +1,7 @@
 let chessSquares = $("#chess-squares");
 let chessPieces = $("#chess-pieces");
 let chessPromotion = $("#chess-promotion");
+let chessEnding = $("#chess-ending");
 let position = new ChessPosition();
 let lastPiece = [-1, -1];
 let promotionMove = [0, -1, -1, -1, -1];
@@ -92,6 +93,12 @@ function endMakingMove(fromX, fromY, toX, toY) {
 		pieceElements[fromX][toY].css({"display": "none"});
 		pieceElements[fromX][toY] = null;
 	}
+	if (position.isCheckmated()) {
+		endGame(position.moveColor*2-1, "Checkmate");
+	}
+	if (position.isStalemated()) {
+		endGame(0, "Stalemate");
+	}
 } 
 
 function makePromotion(piece) {
@@ -144,6 +151,16 @@ function checkCheck() {
 	}
 }
 
+function endGame(side, reason) {
+	let result = ((side == 0) ? "Draw" : ((side > 0) ? "White Won" : "Black Won"));
+	$("#chess-info-process-text").text(result);
+	$("#chess-ending-text").html(
+		`Game Ended.<br>${reason}.<br>${result}.<br><br>Tap to see the board.`
+	);
+	$("#chess-ending").css({"pointer-events": "all"});
+	$("#chess-ending").addClass("chess-ending-visible");
+}
+
 function boardStart() {
 	for (let i=8-1; i>=0; i--) {
 		for (let j=0; j<8; j++) {
@@ -179,6 +196,17 @@ function boardStart() {
 	$(".chess-promotion-cancel").on("click", function(event) {
 		cancelPromotion();
 	});
+	
+	chessEnding.append($(
+		`<div id="chess-ending-text">Game Ended.<br><br>Tap to see the board.</div>`
+	));
+	chessEnding.on("click", function(event) {
+		if ($(this).hasClass("chess-ending-visible")) {
+			$(this).removeClass("chess-ending-visible");
+		} else {
+			$(this).addClass("chess-ending-visible");
+		}
+	})
 
 	$(".chess-piece").draggable({
 		containment: "parent",
@@ -272,4 +300,7 @@ function resizePieces() {
 	$("#chess-check-square").css({
 		"box-shadow": `0px 0px ${$(".chess-square").eq(0).width()/Math.sqrt(8)}px ${$(".chess-square").eq(0).width()/Math.sqrt(8)}px red`
 	});
+	$("#chess-ending-text").css({
+		"font-size": `${$(".chess-square").eq(0).width()/1.5}px`
+	})
 }

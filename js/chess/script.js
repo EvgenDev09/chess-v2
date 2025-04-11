@@ -34,6 +34,8 @@ function setHeaderSize() {
 
 function setChessSize() {
 	setHeaderSize();
+	chessContainer.height('0');
+	chessInfo.css({"--size-ratio": `0`});
 	let mainAspectRatio = mainContainer.width() / mainContainer.height();
 	if (mainAspectRatio < 4/5) {
 		mainContainer.addClass("is-vertical");
