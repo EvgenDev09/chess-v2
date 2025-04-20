@@ -95,9 +95,12 @@ function endMakingMove(fromX, fromY, toX, toY) {
 	}
 	if (position.isCheckmated()) {
 		endGame(position.moveColor*2-1, "Checkmate");
-	}
-	if (position.isStalemated()) {
+	} else if (position.isStalemated()) {
 		endGame(0, "Stalemate");
+	} else if (position.isThreefoldRepetition()) {
+		endGame(0, "Threefold Repetition");
+	} else if (position.is50MoveRule()) {
+		endGame(0, "50-Move Rule");
 	}
 } 
 

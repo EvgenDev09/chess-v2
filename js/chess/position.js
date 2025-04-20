@@ -1,10 +1,12 @@
 class ChessPosition {
 	board;
 	moveColor = 0;
+	move50 = 0;
 	enPassant = -1;
 	castling = [true, true, true, true];
 	#possibleMoves = [];
 	calculatedMoves = false;
+	lastPositions;
 	constructor() {
 		this.board = [
 			[4, 2, 3, 5, 6, 3, 2, 4],
@@ -17,8 +19,13 @@ class ChessPosition {
 			[-4, -2, -3, -5, -6, -3, -2, -4],
 		]
 		this.moveColor = 0;
+		this.move50 = 0;
 		this.enPassant = -1;
 		this.castling = [true, true, true, true];
+		this.#possibleMoves = [];
+		this.calculatedMoves = false;
+		this.lastPositions = new Map();
+		this.lastPositions.set(this.getShortFEN(), 1);
 	}
 
 	#calculateAllMoves(color) {
@@ -194,6 +201,50 @@ class ChessPosition {
 		return moves.some((move) => (this.board[move[1][0]][move[1][1]] == 6 * ((1-color)*2 - 1)));
 	}
 
+	getShortFEN() {
+		let pieceChar = ["p", "n", "b", "r", "q", "k"];
+		let fen = "";
+		for (let i=8-1; i>=0; i--) {
+			for (let j=0; j<8; j++) {
+				if (this.board[i][j] == 0) {
+					let space = 0;
+					while (j<8 && this.board[i][j] == 0) {
+						space++;
+						j++;
+					}
+					j--;
+					fen += space.toString();
+				} else {
+					if (this.board[i][j] > 0) {
+						fen += pieceChar[this.board[i][j]-1].toUpperCase();
+					} else {
+						fen += pieceChar[-this.board[i][j]-1];
+					}
+				}
+			}
+			if (i > 0) fen += "/";
+		}
+		fen += ((this.moveColor == 0) ? " w " : " b ");
+		let castlingChar = ["K", "Q", "k", "q"];
+		let anyCastling = false;
+		for (let i=0; i<4; i++) {
+			if (this.castling[i]) {
+				fen += castlingChar[i];
+				anyCastling = true;
+			}
+		}
+		if (!anyCastling) fen += "-";
+		fen += " ";
+		if (this.enPassant == -1) {
+			fen += "-";
+		} else {
+			let fileStr = ["a", "b", "c", "d", "e", "f", "g", "h"];
+			fen += fileStr[this.enPassant];
+			fen += ((this.moveColor == 0) ? "6" : "3");
+		}
+		return fen;
+	}
+
 	isChecked() {
 		return this.#isChecked(this.moveColor); 
 	}
@@ -210,6 +261,15 @@ class ChessPosition {
 		return !this.isChecked() && !this.hasLegalMoves();
 	}
 
+	isThreefoldRepetition() {
+		let fen = this.getShortFEN();
+		return this.lastPositions.has(fen) && this.lastPositions.get(fen) >= 3;
+	}
+
+	is50MoveRule() {
+		return this.move50 >= 100;
+	}
+
 	copyPosition() {
 		let newPosition = new ChessPosition();
 		for (let i=0; i<8; i++) {
@@ -218,14 +278,20 @@ class ChessPosition {
 			}
 		}
 		newPosition.moveColor = this.moveColor;
+		newPosition.move50 = this.move50;
 		newPosition.enPassant = this.enPassant;
 		for (let i=0; i<4; i++) {
 			newPosition.castling[i] = this.castling[i];
 		}
+		newPosition.lastPositions = new Map(this.lastPositions);
 		return newPosition;
 	}
 
 	makeMove(fromX, fromY, toX, toY, become=0) {
+		this.move50++;
+		if (Math.abs(this.board[fromX][fromY]) == 1 || this.board[toX][toY] != 0) {
+			this.move50 = 0;
+		}
 		if (Math.abs(this.board[fromX][fromY]) == 1 && fromY != toY && this.board[toX][toY] == 0) {
 			this.board[fromX][toY] = 0;
 		}
@@ -275,6 +341,12 @@ class ChessPosition {
 		this.board[fromX][fromY] = 0;
 		this.moveColor = (1 - this.moveColor);
 		this.calculatedMoves = false;
+		let fen = this.getShortFEN();
+		if (this.lastPositions.has(fen)) {
+			this.lastPositions.set(fen, this.lastPositions.get(fen)+1);
+		} else {
+			this.lastPositions.set(fen, 1);
+		}
 	}
 
 	getMoveNotation(fromX, fromY, toX, toY, become=0) {
