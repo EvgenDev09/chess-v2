@@ -368,7 +368,7 @@ class ChessPosition {
 	}
 
 	getMoveNotation(fromX, fromY, toX, toY, become=0) {
-		if (Math.abs(this.board[fromX][fromY] == 6)) {
+		if (Math.abs(this.board[fromX][fromY]) == 6) {
 			if (toY - fromY == 2) return "0-0";
 			if (toY - fromY == -2) return "0-0-0";
 		}
