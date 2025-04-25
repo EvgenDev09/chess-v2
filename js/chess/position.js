@@ -270,6 +270,24 @@ class ChessPosition {
 		return this.move50 >= 100;
 	}
 
+	hasNoSufficientMaterial() {
+		let material = [0, 0, 0, 0];
+		for (let i=0; i<8; i++) {
+			for (let j=0; j<8; j++) {
+				if (this.board[i][j] == 0 || Math.abs(this.board[i][j]) == 6) continue;
+				if (this.board[i][j] == 2) material[0] += 1;
+				else if (this.board[i][j] == 3) material[1] += 1;
+				else if (this.board[i][j] == -2) material[2] += 1;
+				else if (this.board[i][j] == -3) material[3] += 1;
+				else return false;
+			}
+		}
+		if (material[0] + material[1] <= 1 && material[2] + material[3] <= 1) return true;
+		if (material[0] == 2 && material[1] + material[2] + material[3] == 0) return true;
+		if (material[2] == 2 && material[1] + material[0] + material[3] == 0) return true;
+		return false;
+	}
+
 	copyPosition() {
 		let newPosition = new ChessPosition();
 		for (let i=0; i<8; i++) {

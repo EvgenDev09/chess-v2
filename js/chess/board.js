@@ -99,6 +99,8 @@ function endMakingMove(fromX, fromY, toX, toY) {
 		endGame(0, "Stalemate");
 	} else if (position.isThreefoldRepetition()) {
 		endGame(0, "Threefold Repetition");
+	} else if (position.hasNoSufficientMaterial()) {
+		endGame(0, "Insufficient Material");
 	} else if (position.is50MoveRule()) {
 		endGame(0, "50-Move Rule");
 	}
