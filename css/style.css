@@ -267,6 +267,18 @@ body, p {
 	background-color: #202020;
 }
 
+.chess-info-computer.chess-computer-activated {
+	background-color: #11aa11;
+}
+
+.chess-info-computer.chess-computer-activated:hover {
+	background-color: #0c9c0c;
+}
+
+.chess-info-computer.chess-computer-activated:active {
+	background-color: #059505;
+}
+
 #chess-info-buttons {
 	display: flex;
 	gap: calc(10px * var(--size-ratio));

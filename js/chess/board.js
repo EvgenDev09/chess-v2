@@ -8,6 +8,12 @@ let promotionMove = [0, -1, -1, -1, -1];
 let pieceElements = [];
 let draggedIt = false;
 let moveNumber = 0;
+let computerActivated = [false, false];
+let engines = [new DepthEngine(), new DepthEngine()];
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 function getPieceClass(piece) {
 	let pieceClasses = ["pawn", "knight", "bishop", "rook", "queen", "king"];
@@ -51,7 +57,7 @@ function highlightDroppableSquares(i, j) {
 	});
 }
 
-function makeMove(fromX, fromY, toX, toY) {
+function makeMove(fromX, fromY, toX, toY, piece=0) {
 	pieceElements[fromX][fromY].css({"--row": toX, "--column": toY});
 	if (pieceElements[toX][toY]) {
 		pieceElements[toX][toY].css({"display": "none"});
@@ -70,16 +76,26 @@ function makeMove(fromX, fromY, toX, toY) {
 	}
 	if ((position.board[fromX][fromY] == 1 && toX == 7) || (position.board[fromX][fromY] == -1 && toX == 0)) {
 		promotionMove = [position.board[fromX][fromY], fromX, fromY, toX, toY];
-		$(`#chess-promotion-${(position.board[fromX][fromY] > 0) ? "white" : "black"}`).css({
-			"display": "flex",
-			"--column": toY
-		});
+		if (piece == 0) {
+			$(`#chess-promotion-${(position.board[fromX][fromY] > 0) ? "white" : "black"}`).css({
+				"display": "flex",
+				"--column": toY
+			});
+		} else {
+			makePromotion(piece);
+		}
 	} else {
 		let moveStr = position.getMoveNotation(fromX, fromY, toX, toY);
 		addMoveInfo(moveStr);
 		position.makeMove(fromX, fromY, toX, toY);
 		endMakingMove(fromX, fromY, toX, toY);
 	}
+}
+
+function engineMakeMove() {
+	let move = engines[position.moveColor].getBestMove(position);
+	if (move.length == 3) makeMove(move[0][0], move[0][1], move[1][0], move[1][1], move[2]);
+	else makeMove(move[0][0], move[0][1], move[1][0], move[1][1]);
 }
 
 function endMakingMove(fromX, fromY, toX, toY) {
@@ -103,6 +119,11 @@ function endMakingMove(fromX, fromY, toX, toY) {
 		endGame(0, "Insufficient Material");
 	} else if (position.is50MoveRule()) {
 		endGame(0, "50-Move Rule");
+	} else {
+		if (computerActivated[position.moveColor]) {
+			sleep(100).then(() => { engineMakeMove(); });
+		 	//engineMakeMove();
+		}
 	}
 } 
 
@@ -222,6 +243,7 @@ function boardStart() {
 			let row = Math.round($(this).css("--row"));
 			let column = Math.round($(this).css("--column"));
 			if ((position.moveColor == 0) != (position.board[row][column] > 0)) return false;
+			if (computerActivated[position.moveColor]) return false;
 			highlightDroppableSquares(row, column);
 		},
 		stop: function(event, ui) {
@@ -266,6 +288,7 @@ function boardStart() {
 			}
 			unhighlightDroppableSquares();
 		} else {
+			if (computerActivated[position.moveColor]) return;
 			if (lastPiece[0] == row && lastPiece[1] == column)
 				unhighlightDroppableSquares();
 			else
@@ -309,3 +332,18 @@ function resizePieces() {
 		"font-size": `${$(".chess-square").eq(0).width()/1.5}px`
 	})
 }
+
+function activateComputerMode(color) {
+	if (computerActivated[color]) {
+		computerActivated[color] = false;
+		$(`#chess-info-players .chess-info-player:nth-child(${color+1}) .chess-info-computer`).removeClass("chess-computer-activated");
+	} else {
+		computerActivated[color] = true;
+		$(`#chess-info-players .chess-info-player:nth-child(${color+1}) .chess-info-computer`).addClass("chess-computer-activated");
+		if (position.moveColor == color)
+			engineMakeMove();
+	}
+}
+
+$(`#chess-info-players .chess-info-player:nth-child(1) .chess-info-computer`).on("click", function(event) {activateComputerMode(0);});
+$(`#chess-info-players .chess-info-player:nth-child(2) .chess-info-computer`).on("click", function(event) {activateComputerMode(1);});

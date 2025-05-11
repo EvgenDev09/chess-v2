@@ -270,6 +270,10 @@ class ChessPosition {
 		return this.move50 >= 100;
 	}
 
+	isDraw() {
+		return this.isStalemated() || this.isThreefoldRepetition() || this.hasNoSufficientMaterial() || this.is50MoveRule();
+	}
+
 	hasNoSufficientMaterial() {
 		let material = [0, 0, 0, 0];
 		for (let i=0; i<8; i++) {
@@ -436,5 +440,21 @@ class ChessPosition {
 		});
 		this.calculatedMoves = true;
 		return this.#possibleMoves;
+	}
+
+	getPossibleMovesWithPromotion() {
+		let possibleMovesWP = [];
+		let movesOld = this.getPossibleMoves();
+		movesOld.forEach(move => {
+			let piece = this.board[move[0][0]][move[0][1]];
+			if (Math.abs(piece) == 1 && move[1][0]*2 == 7*(1 + piece)) {
+				for (let i=2; i<6; i++) {
+					possibleMovesWP.push([move[0], move[1], i*piece]);
+				}
+			} else {
+				possibleMovesWP.push(move);
+			}
+		});
+		return possibleMovesWP;
 	}
 }
