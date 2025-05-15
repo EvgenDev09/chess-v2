@@ -18,9 +18,14 @@ body {
 }
 
 #chess-squares {
-	display: grid;
-	grid-template-columns: repeat(8, 1fr);
-	grid-template-rows: repeat(8, 1fr);
+	display: flex;
+	flex-flow: wrap;
+}
+
+#chess-board.chess-board-rotated #chess-squares {
+	display: flex;
+	flex-direction: row-reverse;
+	flex-wrap: wrap-reverse;
 }
 
 #chess-pieces, .chess-piece {
@@ -54,8 +59,8 @@ body {
 }
 
 .chess-square {
-	width: 100%;
-	height: 100%;
+	width: 12.5%;
+	height: 12.5%;
     background-image: var(--chess-squares);
     background-repeat: no-repeat;
     background-size: cover;
@@ -78,10 +83,15 @@ body {
 .chess-square.chess-square-droppable.light-square { --img-index: 5; }
 .chess-square.chess-square-droppable.dark-square { --img-index: 4; }
 
-.chess-square:nth-child(1) { border-top-left-radius: var(--board-radius); }
-.chess-square:nth-child(8) { border-top-right-radius: var(--board-radius); }
-.chess-square:nth-child(57) { border-bottom-left-radius: var(--board-radius); }
-.chess-square:nth-child(64) { border-bottom-right-radius: var(--board-radius); }
+#chess-board:not(.chess-board-rotated) .chess-square:nth-child(1) { border-top-left-radius: var(--board-radius); }
+#chess-board:not(.chess-board-rotated) .chess-square:nth-child(8) { border-top-right-radius: var(--board-radius); }
+#chess-board:not(.chess-board-rotated) .chess-square:nth-child(57) { border-bottom-left-radius: var(--board-radius); }
+#chess-board:not(.chess-board-rotated) .chess-square:nth-child(64) { border-bottom-right-radius: var(--board-radius); }
+
+#chess-board.chess-board-rotated .chess-square:nth-child(64) { border-top-left-radius: var(--board-radius); }
+#chess-board.chess-board-rotated .chess-square:nth-child(57) { border-top-right-radius: var(--board-radius); }
+#chess-board.chess-board-rotated .chess-square:nth-child(8) { border-bottom-left-radius: var(--board-radius); }
+#chess-board.chess-board-rotated .chess-square:nth-child(1) { border-bottom-right-radius: var(--board-radius); }
 
 .chess-piece {
 	width: calc(100% / 8);
@@ -93,6 +103,11 @@ body {
 	left: calc(100% / 8 * var(--column));
 	pointer-events: all;
 	cursor: pointer;
+}
+
+#chess-board.chess-board-rotated .chess-piece {
+	bottom: calc(100% / 8 * (7 - var(--row)));
+	left: calc(100% / 8 * (7 - var(--column)));
 }
 
 .chess-piece div {
@@ -130,6 +145,33 @@ body {
 .chess-piece.dark-queen, #chess-promotion-black .chess-promotion-queen { --img-index: 10; }
 .chess-piece.dark-king { --img-index: 11; }
 
+#chess-board.chess-board-rot-pieces-all .chess-piece.light-pawn,
+#chess-board.chess-board-rot-pieces-all .chess-piece.light-knight,
+#chess-board.chess-board-rot-pieces-all .chess-piece.light-bishop,
+#chess-board.chess-board-rot-pieces-all .chess-piece.light-rook,
+#chess-board.chess-board-rot-pieces-all .chess-piece.light-queen,
+#chess-board.chess-board-rot-pieces-all .chess-piece.light-king,
+#chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-pawn,
+#chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-knight,
+#chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-bishop,
+#chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-rook,
+#chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-queen,
+#chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-king,
+#chess-board.chess-board-rot-pieces-all .chess-piece.dark-pawn,
+#chess-board.chess-board-rot-pieces-all .chess-piece.dark-knight,
+#chess-board.chess-board-rot-pieces-all .chess-piece.dark-bishop,
+#chess-board.chess-board-rot-pieces-all .chess-piece.dark-rook,
+#chess-board.chess-board-rot-pieces-all .chess-piece.dark-queen,
+#chess-board.chess-board-rot-pieces-all .chess-piece.dark-king,
+#chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-pawn,
+#chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-knight,
+#chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-bishop,
+#chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-rook,
+#chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-queen,
+#chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-king {
+	transform: rotate(180deg);
+}
+
 #chess-promotion-white, #chess-promotion-black {
     position: absolute;
     width: 12.5%;
@@ -144,12 +186,16 @@ body {
 	pointer-events: all;
 }
 
-#chess-promotion-white {
+#chess-board.chess-board-rotated #chess-promotion-white, #chess-board.chess-board-rotated #chess-promotion-black {
+	left: calc(100% / 8 * (7 - var(--column)));
+}
+
+#chess-board:not(.chess-board-rotated) #chess-promotion-white, #chess-board.chess-board-rotated #chess-promotion-black {
     top: 0;
     flex-direction: column;
 }
 
-#chess-promotion-black {
+#chess-board:not(.chess-board-rotated) #chess-promotion-black, #chess-board.chess-board-rotated #chess-promotion-white {
     bottom: 0;
     flex-direction: column-reverse;
 }
@@ -175,10 +221,10 @@ body {
 	cursor: pointer;
 }
 
-#chess-promotion-white .chess-promotion-cancel {
+#chess-board:not(.chess-board-rotated) #chess-promotion-white .chess-promotion-cancel, #chess-board.chess-board-rotated #chess-promotion-black .chess-promotion-cancel {
     border-radius: 0px 0px var(--board-radius) var(--board-radius);
 }
 
-#chess-promotion-black .chess-promotion-cancel {
+#chess-board:not(.chess-board-rotated) #chess-promotion-black .chess-promotion-cancel, #chess-board.chess-board-rotated #chess-promotion-white .chess-promotion-cancel {
     border-radius: var(--board-radius) var(--board-radius) 0px 0px;
 }

@@ -20,6 +20,24 @@ function getPieceClass(piece) {
 	return ((piece < 0) ? "dark" : "light") + "-" + pieceClasses[Math.abs(piece)-1];
 }
 
+function chessPieceClick(event) {
+	if (promotionMove[0] != 0) return;
+	let row = Math.round($(event.target).css("--row"));
+	let column = Math.round($(event.target).css("--column"));
+	if ((position.moveColor == 0) != (position.board[row][column] > 0)) {
+		if ($(".chess-square").eq((7-row)*8 + column).hasClass("chess-square-droppable")) {
+			makeMove(lastPiece[0], lastPiece[1], row, column);
+		}
+		unhighlightDroppableSquares();
+	} else {
+		if (computerActivated[position.moveColor]) return;
+		if (lastPiece[0] == row && lastPiece[1] == column)
+			unhighlightDroppableSquares();
+		else
+			highlightDroppableSquares(row, column);
+	}
+}
+
 function setPosition(pos) {
 	pieceElements = [];
 	for (let i=0; i<8; i++) {
@@ -36,6 +54,58 @@ function setPosition(pos) {
 		}
 		pieceElements.push(pieceElementsRow);
 	}
+
+	$(".chess-piece").on('click', function(event) {
+		if (!("ontouchstart" in window))
+			chessPieceClick(event);
+	});
+	$(".chess-piece").on('touchend', chessPieceClick);
+
+	$(".chess-piece").draggable({
+		containment: "parent",
+		delay: 0,
+		cursorAt: [0, 0],
+		start: function(event, ui) {
+			if (promotionMove[0] != 0) return false;
+			let row = Math.round($(this).css("--row"));
+			let column = Math.round($(this).css("--column"));
+			if ((position.moveColor == 0) != (position.board[row][column] > 0)) return false;
+			if (computerActivated[position.moveColor]) return false;
+			highlightDroppableSquares(row, column);
+		},
+		stop: function(event, ui) {
+			$(this).css({"left": "", "top": ""});
+		},
+		revert: function(event) {
+			if (!event) return true;
+			if (promotionMove[0] != 0) return true;
+			if ($(event).hasClass("chess-square-droppable")) {
+				unhighlightDroppableSquares();
+				let squareIndex = $(event).index();
+				let row = Math.round($(this).css("--row"));
+				let column = Math.round($(this).css("--column"));
+				let toX = Math.floor(squareIndex / 8);
+				let toY = squareIndex % 8;
+				makeMove(row, column, 7-toX, toY);
+				draggedIt = false;
+				return false;
+			}
+			if ($(event).hasClass("chess-square-highlighted-current")) {
+				if (draggedIt) {
+					unhighlightDroppableSquares();
+				}
+				draggedIt = !draggedIt;
+				return true;
+			}
+			draggedIt = true;
+			return true;
+		},
+		revertDuration: 0,
+		scope: "chess",
+		stack: ".chess-piece"
+	});
+
+	resizePieces();
 	checkCheck();
 }
 
@@ -157,7 +227,12 @@ function addMoveInfo(move) {
 		moveStr = `${Math.round(moveNumber / 2) + 1}. ${moveStr}`;
 	}
 	moveNumber += 1;
-	$("#chess-info-moves-container").append($(`<div class="chess-info-move">${moveStr}</div>`));
+	let movesContainer = $("#chess-info-moves-container");
+	let isAtBottom = (movesContainer.scrollTop() + movesContainer.height() >= movesContainer.prop("scrollHeight"));
+	movesContainer.append($(`<div class="chess-info-move">${moveStr}</div>`));
+	if (isAtBottom) {
+		movesContainer.scrollTop(movesContainer.prop("scrollHeight"));
+	}
 }
 
 function checkCheck() {
@@ -233,74 +308,6 @@ function boardStart() {
 			$(this).addClass("chess-ending-visible");
 		}
 	})
-
-	$(".chess-piece").draggable({
-		containment: "parent",
-		delay: 0,
-		cursorAt: [0, 0],
-		start: function(event, ui) {
-			if (promotionMove[0] != 0) return false;
-			let row = Math.round($(this).css("--row"));
-			let column = Math.round($(this).css("--column"));
-			if ((position.moveColor == 0) != (position.board[row][column] > 0)) return false;
-			if (computerActivated[position.moveColor]) return false;
-			highlightDroppableSquares(row, column);
-		},
-		stop: function(event, ui) {
-			$(this).css({"left": "", "top": ""});
-		},
-		revert: function(event) {
-			if (!event) return true;
-			if (promotionMove[0] != 0) return true;
-			if ($(event).hasClass("chess-square-droppable")) {
-				unhighlightDroppableSquares();
-				let squareIndex = $(event).index();
-				let row = Math.round($(this).css("--row"));
-				let column = Math.round($(this).css("--column"));
-				let toX = Math.floor(squareIndex / 8);
-				let toY = squareIndex % 8;
-				makeMove(row, column, 7-toX, toY);
-				draggedIt = false;
-				return false;
-			}
-			if ($(event).hasClass("chess-square-highlighted-current")) {
-				if (draggedIt) {
-					unhighlightDroppableSquares();
-				}
-				draggedIt = !draggedIt;
-				return true;
-			}
-			draggedIt = true;
-			return true;
-		},
-		revertDuration: 0,
-		scope: "chess",
-		stack: ".chess-piece"
-	});
-
-	function chessPieceClick(event) {
-		if (promotionMove[0] != 0) return;
-		let row = Math.round($(event.target).css("--row"));
-		let column = Math.round($(event.target).css("--column"));
-		if ((position.moveColor == 0) != (position.board[row][column] > 0)) {
-			if ($(".chess-square").eq((7-row)*8 + column).hasClass("chess-square-droppable")) {
-				makeMove(lastPiece[0], lastPiece[1], row, column);
-			}
-			unhighlightDroppableSquares();
-		} else {
-			if (computerActivated[position.moveColor]) return;
-			if (lastPiece[0] == row && lastPiece[1] == column)
-				unhighlightDroppableSquares();
-			else
-				highlightDroppableSquares(row, column);
-		}
-	}
-
-	$(".chess-piece").on('click', function(event) {
-		if (!("ontouchstart" in window))
-			chessPieceClick(event);
-	});
-	$(".chess-piece").on('touchend', chessPieceClick);
 	
 	$(".chess-square").droppable({
 		scope: "chess"
@@ -347,3 +354,34 @@ function activateComputerMode(color) {
 
 $(`#chess-info-players .chess-info-player:nth-child(1) .chess-info-computer`).on("click", function(event) {activateComputerMode(0);});
 $(`#chess-info-players .chess-info-player:nth-child(2) .chess-info-computer`).on("click", function(event) {activateComputerMode(1);});
+
+$(`#chess-info-rotate-board`).on("click", function(event) {
+	if ($(`#chess-board`).hasClass('chess-board-rotated'))
+		$(`#chess-board`).removeClass('chess-board-rotated');
+	else
+		$(`#chess-board`).addClass('chess-board-rotated');
+});
+
+$(`#chess-info-rotate-pieces`).on("click", function(event) {
+	if ($(`#chess-board`).hasClass('chess-board-rot-pieces-all')) {
+		$(`#chess-board`).removeClass('chess-board-rot-pieces-all');
+		$(`#chess-board`).addClass('chess-board-rot-pieces-opp');
+	} else if ($(`#chess-board`).hasClass('chess-board-rot-pieces-opp'))
+		$(`#chess-board`).removeClass('chess-board-rot-pieces-opp');
+	else
+		$(`#chess-board`).addClass('chess-board-rot-pieces-all');
+});
+
+$(`#chess-info-restart`).on("click", function(event) {
+	$("#chess-info-moves-container").empty();
+	$("#chess-pieces").empty();
+	$("#chess-ending").removeClass("chess-ending-visible");
+	position = new ChessPosition();
+	setPosition(position);
+	$(".chess-square").removeClass("chess-square-highlighted");
+	$("#chess-ending").css({"pointer-events": ""});
+	$("#chess-info-process-text").text("Game in process...");
+	moveNumber = 0;
+	if (computerActivated[0])
+		engineMakeMove();
+});
