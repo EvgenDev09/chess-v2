@@ -113,6 +113,7 @@ function setPosition(pos) {
 	});
 	$(".chess-piece").on('touchend', chessPieceClick);
 
+	currentMoveChange = [];
 	moveChanges = [];
 	resizePieces();
 	checkCheck();
@@ -267,7 +268,6 @@ function checkCheck() {
 		curMoveChange.push(move);
 	});
 	moveChanges.push(curMoveChange);
-	console.log(moveChanges);
 }
 
 function setCheck(color) {
@@ -413,6 +413,7 @@ $(`#chess-info-restart`).on("click", function(event) {
 	$("#chess-ending").removeClass("chess-ending-visible");
 	position = startingPosition.copyPosition();
 	setPosition(position);
+	unhighlightDroppableSquares();
 	$(".chess-square").removeClass("chess-square-highlighted");
 	$("#chess-ending").css({"pointer-events": ""});
 	$("#chess-info-process-text").text("Game in process...");
