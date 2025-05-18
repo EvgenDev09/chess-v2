@@ -2,7 +2,8 @@ let chessSquares = $("#chess-squares");
 let chessPieces = $("#chess-pieces");
 let chessPromotion = $("#chess-promotion");
 let chessEnding = $("#chess-ending");
-let position = new ChessPosition();
+let startingPosition = new ChessPosition();
+let position = startingPosition.copyPosition();
 let lastPiece = [-1, -1];
 let promotionMove = [0, -1, -1, -1, -1];
 let pieceElements = [];
@@ -10,6 +11,13 @@ let draggedIt = false;
 let moveNumber = 0;
 let computerActivated = [false, false];
 let engines = [new DepthEngine(), new DepthEngine()];
+
+let moveChanges = [];
+// 0 - Move (piece, fromX, fromY, toX, toY)
+// 1 - Destroy (piece)
+// 2 - Promote (piece, newPiece)
+// 3 - Check
+let currentMoveChange = [];
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -55,12 +63,6 @@ function setPosition(pos) {
 		pieceElements.push(pieceElementsRow);
 	}
 
-	$(".chess-piece").on('click', function(event) {
-		if (!("ontouchstart" in window))
-			chessPieceClick(event);
-	});
-	$(".chess-piece").on('touchend', chessPieceClick);
-
 	$(".chess-piece").draggable({
 		containment: "parent",
 		delay: 0,
@@ -105,6 +107,13 @@ function setPosition(pos) {
 		stack: ".chess-piece"
 	});
 
+	$(".chess-piece").on('click', function(event) {
+		if (!("ontouchstart" in window))
+			chessPieceClick(event);
+	});
+	$(".chess-piece").on('touchend', chessPieceClick);
+
+	moveChanges = [];
 	resizePieces();
 	checkCheck();
 }
@@ -128,21 +137,29 @@ function highlightDroppableSquares(i, j) {
 }
 
 function makeMove(fromX, fromY, toX, toY, piece=0) {
+	currentMoveChange = [];
+	currentMoveChange.push([0, pieceElements[fromX][fromY].index(), fromX, fromY, toX, toY]);
+
 	pieceElements[fromX][fromY].css({"--row": toX, "--column": toY});
 	if (pieceElements[toX][toY]) {
 		pieceElements[toX][toY].css({"display": "none"});
 	}
 	if (Math.abs(position.board[fromX][fromY]) == 6) {
 		if (toY - fromY == 2) {
+			currentMoveChange.push([0, pieceElements[toX][7].index(), toX, 7, toX, 5]);
 			pieceElements[toX][7].css({"--row": toX, "--column": 5});
 			pieceElements[toX][5] = pieceElements[toX][7];
 			pieceElements[toX][7] = null;
 		}
 		if (toY - fromY == -2) {
+			currentMoveChange.push([0, pieceElements[toX][0].index(), toX, 0, toX, 3]);
 			pieceElements[toX][0].css({"--row": toX, "--column": 3});
 			pieceElements[toX][3] = pieceElements[toX][0];
 			pieceElements[toX][0] = null;
 		}
+	}
+	if (position.board[toX][toY] != 0) {
+		currentMoveChange.push([1, pieceElements[toX][toY].index()]);
 	}
 	if ((position.board[fromX][fromY] == 1 && toX == 7) || (position.board[fromX][fromY] == -1 && toX == 0)) {
 		promotionMove = [position.board[fromX][fromY], fromX, fromY, toX, toY];
@@ -174,11 +191,12 @@ function endMakingMove(fromX, fromY, toX, toY) {
 	$(".chess-square").removeClass("chess-square-highlighted");
 	$(".chess-square").eq((7-fromX)*8 + fromY).addClass("chess-square-highlighted");
 	$(".chess-square").eq((7-toX)*8 + toY).addClass("chess-square-highlighted");
-	checkCheck();
 	if (fromY != toY && pieceElements[fromX][toY] && position.board[fromX][toY] == 0) {
+		currentMoveChange.push([1, pieceElements[fromX][toY].index()]);
 		pieceElements[fromX][toY].css({"display": "none"});
 		pieceElements[fromX][toY] = null;
 	}
+	checkCheck();
 	if (position.isCheckmated()) {
 		endGame(position.moveColor*2-1, "Checkmate");
 	} else if (position.isStalemated()) {
@@ -201,6 +219,7 @@ function makePromotion(piece) {
 	$(`#chess-promotion-${(position.board[promotionMove[1]][promotionMove[2]] > 0) ? "white" : "black"}`).css({"display": "none"});
 	let moveStr = position.getMoveNotation(promotionMove[1], promotionMove[2], promotionMove[3], promotionMove[4], piece);
 	addMoveInfo(moveStr);
+	currentMoveChange.push([2, pieceElements[promotionMove[1]][promotionMove[2]].index(), position.board[promotionMove[1]][promotionMove[2]], piece]);
 	pieceElements[promotionMove[1]][promotionMove[2]].removeClass(
 		getPieceClass(position.board[promotionMove[1]][promotionMove[2]])
 	);
@@ -236,18 +255,34 @@ function addMoveInfo(move) {
 }
 
 function checkCheck() {
+	let color = 0;
 	if (position.isChecked()) {
+		color = 1 - position.moveColor*2;
+	}
+	setCheck(color);
+
+	currentMoveChange.push([3, color]);
+	let curMoveChange = [];
+	currentMoveChange.forEach(move => {
+		curMoveChange.push(move);
+	});
+	moveChanges.push(curMoveChange);
+	console.log(moveChanges);
+}
+
+function setCheck(color) {
+	if (color == 0) {
+		$("#chess-check-square").css({
+			"display": "none"
+		});
+	} else {
 		let piece = ".chess-piece.dark-king";
-		if (position.moveColor == 0) {
+		if (position.moveColor > 0) {
 			piece = ".chess-piece.light-king";
 		}
 		$("#chess-check-square").detach().prependTo(piece);
 		$("#chess-check-square").css({
 			"display": "block"
-		});
-	} else {
-		$("#chess-check-square").css({
-			"display": "none"
 		});
 	}
 }
@@ -269,7 +304,7 @@ function boardStart() {
 		}
 	}
 	chessPieces.append($(`<div id="chess-check-square"></div>`));
-	setPosition(position);
+	setPosition(startingPosition);
 	chessPromotion.append($(
 		`<div id="chess-promotion-white">
 			<div class="chess-promotion-piece chess-promotion-queen"></div>
@@ -376,7 +411,7 @@ $(`#chess-info-restart`).on("click", function(event) {
 	$("#chess-info-moves-container").empty();
 	$("#chess-pieces").empty();
 	$("#chess-ending").removeClass("chess-ending-visible");
-	position = new ChessPosition();
+	position = startingPosition.copyPosition();
 	setPosition(position);
 	$(".chess-square").removeClass("chess-square-highlighted");
 	$("#chess-ending").css({"pointer-events": ""});

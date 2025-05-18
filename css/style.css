@@ -243,6 +243,10 @@ body, p {
 	align-items: flex-end;
 }
 
+#chess-info-moves-container .chess-info-move.chess-info-current-move, #chess-info-moves-container .chess-info-move:last-child {
+	background-color: rgba(255, 255, 255, 0.08);
+}
+
 #chess-info-moves-buttons {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);

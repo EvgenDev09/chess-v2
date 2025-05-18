@@ -151,24 +151,28 @@ body {
 #chess-board.chess-board-rot-pieces-all .chess-piece.light-rook,
 #chess-board.chess-board-rot-pieces-all .chess-piece.light-queen,
 #chess-board.chess-board-rot-pieces-all .chess-piece.light-king,
+#chess-board.chess-board-rot-pieces-all #chess-promotion-white .chess-promotion-piece,
 #chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-pawn,
 #chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-knight,
 #chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-bishop,
 #chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-rook,
 #chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-queen,
 #chess-board.chess-board-rot-pieces-opp.chess-board-rotated .chess-piece.light-king,
+#chess-board.chess-board-rot-pieces-opp.chess-board-rotated #chess-promotion-white .chess-promotion-piece,
 #chess-board.chess-board-rot-pieces-all .chess-piece.dark-pawn,
 #chess-board.chess-board-rot-pieces-all .chess-piece.dark-knight,
 #chess-board.chess-board-rot-pieces-all .chess-piece.dark-bishop,
 #chess-board.chess-board-rot-pieces-all .chess-piece.dark-rook,
 #chess-board.chess-board-rot-pieces-all .chess-piece.dark-queen,
 #chess-board.chess-board-rot-pieces-all .chess-piece.dark-king,
+#chess-board.chess-board-rot-pieces-all #chess-promotion-black .chess-promotion-piece,
 #chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-pawn,
 #chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-knight,
 #chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-bishop,
 #chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-rook,
 #chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-queen,
-#chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-king {
+#chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) .chess-piece.dark-king,
+#chess-board.chess-board-rot-pieces-opp:not(.chess-board-rotated) #chess-promotion-black .chess-promotion-piece {
 	transform: rotate(180deg);
 }
 
