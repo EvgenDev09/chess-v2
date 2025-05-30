@@ -20,7 +20,7 @@ let moveChanges = [];
 let currentMoveChange = [];
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function getPieceClass(piece) {
@@ -113,8 +113,6 @@ function setPosition(pos) {
 	});
 	$(".chess-piece").on('touchend', chessPieceClick);
 
-	currentMoveChange = [];
-	moveChanges = [];
 	resizePieces();
 	checkCheck();
 }
@@ -277,7 +275,7 @@ function setCheck(color) {
 		});
 	} else {
 		let piece = ".chess-piece.dark-king";
-		if (position.moveColor > 0) {
+		if (color > 0) {
 			piece = ".chess-piece.light-king";
 		}
 		$("#chess-check-square").detach().prependTo(piece);
@@ -413,6 +411,8 @@ $(`#chess-info-restart`).on("click", function(event) {
 	$("#chess-ending").removeClass("chess-ending-visible");
 	position = startingPosition.copyPosition();
 	setPosition(position);
+	currentMoveChange = [];
+	moveChanges = [];
 	unhighlightDroppableSquares();
 	$(".chess-square").removeClass("chess-square-highlighted");
 	$("#chess-ending").css({"pointer-events": ""});
