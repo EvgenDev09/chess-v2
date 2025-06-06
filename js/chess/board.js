@@ -13,11 +13,12 @@ let computerActivated = [false, false];
 let engines = [new DepthEngine(), new DepthEngine()];
 
 let moveChanges = [];
-// 0 - Move (piece, fromX, fromY, toX, toY)
-// 1 - Destroy (piece)
-// 2 - Promote (piece, newPiece)
-// 3 - Check
+// 0 - Move (fromX, fromY, toX, toY)
+// 1 - Destroy (fromX, fromY)
+// 2 - Promote (fromX, fromY, newPiece)
+// 3 - Check (color)
 let currentMoveChange = [];
+let curMoveRewatch = 0;
 
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
@@ -46,8 +47,36 @@ function chessPieceClick(event) {
 	}
 }
 
+function moveBack() {
+	if (curMoveRewatch <= 0) return;
+	for (let i=moveChanges[curMoveRewatch].length - 1; i>=0; i--) {
+		let moveChange = moveChanges[curMoveRewatch][i];
+		if (moveChange[0] == 0) {
+			pieceElements[moveChange[3]][moveChange[4]].css({"--row": moveChange[1], "--column": moveChange[2]});
+		} else if (moveChange[0] == 1) {
+			pieceElements[moveChange[1]][moveChange[2]].css({"display": ""});
+		} else if (moveChange[0] == 2) {
+			pieceElements[moveChange[1]][moveChange[2]].removeClass(
+				getPieceClass(moveChange[4])
+			);
+			pieceElements[moveChange[1]][moveChange[2]].addClass(
+				getPieceClass(moveChange[3])
+			);
+		}
+	}
+	curMoveRewatch--;
+	moveChanges[curMoveRewatch].some(moveChange => {
+		if (moveChange[0] == 3) {
+			setCheck(moveChange[1]);
+			return true;
+		}
+		return false;
+	});
+}
+
 function setPosition(pos) {
 	pieceElements = [];
+	pieceElementsByIndex = [];
 	for (let i=0; i<8; i++) {
 		pieceElementsRow = [];
 		for (let j=0; j<8; j++) {
@@ -137,7 +166,7 @@ function highlightDroppableSquares(i, j) {
 
 function makeMove(fromX, fromY, toX, toY, piece=0) {
 	currentMoveChange = [];
-	currentMoveChange.push([0, pieceElements[fromX][fromY].index(), fromX, fromY, toX, toY]);
+	currentMoveChange.push([0, fromX, fromY, toX, toY]);
 
 	pieceElements[fromX][fromY].css({"--row": toX, "--column": toY});
 	if (pieceElements[toX][toY]) {
@@ -145,20 +174,20 @@ function makeMove(fromX, fromY, toX, toY, piece=0) {
 	}
 	if (Math.abs(position.board[fromX][fromY]) == 6) {
 		if (toY - fromY == 2) {
-			currentMoveChange.push([0, pieceElements[toX][7].index(), toX, 7, toX, 5]);
+			currentMoveChange.push([0, toX, 7, toX, 5]);
 			pieceElements[toX][7].css({"--row": toX, "--column": 5});
 			pieceElements[toX][5] = pieceElements[toX][7];
 			pieceElements[toX][7] = null;
 		}
 		if (toY - fromY == -2) {
-			currentMoveChange.push([0, pieceElements[toX][0].index(), toX, 0, toX, 3]);
+			currentMoveChange.push([0, toX, 0, toX, 3]);
 			pieceElements[toX][0].css({"--row": toX, "--column": 3});
 			pieceElements[toX][3] = pieceElements[toX][0];
 			pieceElements[toX][0] = null;
 		}
 	}
 	if (position.board[toX][toY] != 0) {
-		currentMoveChange.push([1, pieceElements[toX][toY].index()]);
+		currentMoveChange.push([1, toX, toY]);
 	}
 	if ((position.board[fromX][fromY] == 1 && toX == 7) || (position.board[fromX][fromY] == -1 && toX == 0)) {
 		promotionMove = [position.board[fromX][fromY], fromX, fromY, toX, toY];
@@ -191,7 +220,7 @@ function endMakingMove(fromX, fromY, toX, toY) {
 	$(".chess-square").eq((7-fromX)*8 + fromY).addClass("chess-square-highlighted");
 	$(".chess-square").eq((7-toX)*8 + toY).addClass("chess-square-highlighted");
 	if (fromY != toY && pieceElements[fromX][toY] && position.board[fromX][toY] == 0) {
-		currentMoveChange.push([1, pieceElements[fromX][toY].index()]);
+		currentMoveChange.push([1, fromX, toY]);
 		pieceElements[fromX][toY].css({"display": "none"});
 		pieceElements[fromX][toY] = null;
 	}
@@ -212,13 +241,14 @@ function endMakingMove(fromX, fromY, toX, toY) {
 		 	//engineMakeMove();
 		}
 	}
+	curMoveRewatch++;
 } 
 
 function makePromotion(piece) {
 	$(`#chess-promotion-${(position.board[promotionMove[1]][promotionMove[2]] > 0) ? "white" : "black"}`).css({"display": "none"});
 	let moveStr = position.getMoveNotation(promotionMove[1], promotionMove[2], promotionMove[3], promotionMove[4], piece);
 	addMoveInfo(moveStr);
-	currentMoveChange.push([2, pieceElements[promotionMove[1]][promotionMove[2]].index(), position.board[promotionMove[1]][promotionMove[2]], piece]);
+	currentMoveChange.push([2, promotionMove[1], promotionMove[2], position.board[promotionMove[1]][promotionMove[2]], piece]);
 	pieceElements[promotionMove[1]][promotionMove[2]].removeClass(
 		getPieceClass(position.board[promotionMove[1]][promotionMove[2]])
 	);
