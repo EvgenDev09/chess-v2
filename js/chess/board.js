@@ -7,6 +7,7 @@ let position = startingPosition.copyPosition();
 let lastPiece = [-1, -1];
 let promotionMove = [0, -1, -1, -1, -1];
 let pieceElements = [];
+let pieceElementsID = [];
 let draggedIt = false;
 let moveNumber = 0;
 let computerActivated = [false, false];
@@ -47,36 +48,92 @@ function chessPieceClick(event) {
 	}
 }
 
-function moveBack() {
-	if (curMoveRewatch <= 0) return;
-	for (let i=moveChanges[curMoveRewatch].length - 1; i>=0; i--) {
-		let moveChange = moveChanges[curMoveRewatch][i];
+function moveBack(highlight = true, curProm = false) {
+	if (highlight) $(".chess-square").removeClass("chess-square-highlighted");
+	if (curMoveRewatch <= 0 && !curProm) return;
+	let curMoveChanges = moveChanges[curMoveRewatch];
+	if (curProm) curMoveChanges = currentMoveChange;
+	for (let i=curMoveChanges.length - 1; i>=0; i--) {
+		let moveChange = curMoveChanges[i];
 		if (moveChange[0] == 0) {
-			pieceElements[moveChange[3]][moveChange[4]].css({"--row": moveChange[1], "--column": moveChange[2]});
+			pieceElements[moveChange[1]].css({"--row": moveChange[2], "--column": moveChange[3]});
 		} else if (moveChange[0] == 1) {
-			pieceElements[moveChange[1]][moveChange[2]].css({"display": ""});
+			pieceElements[moveChange[1]].css({"display": ""});
 		} else if (moveChange[0] == 2) {
-			pieceElements[moveChange[1]][moveChange[2]].removeClass(
-				getPieceClass(moveChange[4])
-			);
-			pieceElements[moveChange[1]][moveChange[2]].addClass(
+			pieceElements[moveChange[1]].removeClass(
 				getPieceClass(moveChange[3])
+			);
+			pieceElements[moveChange[1]].addClass(
+				getPieceClass(moveChange[2])
 			);
 		}
 	}
-	curMoveRewatch--;
-	moveChanges[curMoveRewatch].some(moveChange => {
-		if (moveChange[0] == 3) {
+	if (!curProm) {
+		curMoveRewatch--;
+		let check1 = !highlight, check2 = false;
+		moveChanges[curMoveRewatch].some(moveChange => {
+			if (!check1) {
+				$(".chess-square").eq((7-moveChange[2])*8 + moveChange[3]).addClass("chess-square-highlighted");
+				$(".chess-square").eq((7-moveChange[4])*8 + moveChange[5]).addClass("chess-square-highlighted");
+				check1 = true;
+			}
+			if (moveChange[0] == 3) {
+				setCheck(moveChange[1]);
+				check2 = true;
+			}
+			return check1 && check2;
+		});
+	}
+}
+
+function moveStart() {
+	while (curMoveRewatch > 1) {
+		moveBack(false);
+	}
+	moveBack();
+}
+
+function moveForward(highlight = true, curProm = false) {
+	if (curMoveRewatch >= moveChanges.length-1 && !curProm) return;
+	if (highlight) $(".chess-square").removeClass("chess-square-highlighted");
+	let curMoveChanges = currentMoveChange;
+	if (!curProm) {
+		curMoveRewatch++;
+		curMoveChanges = moveChanges[curMoveRewatch];
+	}
+	for (let i=curMoveChanges.length - 1; i>=0; i--) {
+		let moveChange = curMoveChanges[i];
+		if (moveChange[0] == 0) {
+			pieceElements[moveChange[1]].css({"--row": moveChange[4], "--column": moveChange[5]});
+			if (highlight) {
+				$(".chess-square").eq((7-moveChange[2])*8 + moveChange[3]).addClass("chess-square-highlighted");
+				$(".chess-square").eq((7-moveChange[4])*8 + moveChange[5]).addClass("chess-square-highlighted");
+			}
+		} else if (moveChange[0] == 1) {
+			pieceElements[moveChange[1]].css({"display": "none"});
+		} else if (moveChange[0] == 2) {
+			pieceElements[moveChange[1]].addClass(
+				getPieceClass(moveChange[3])
+			);
+			pieceElements[moveChange[1]].removeClass(
+				getPieceClass(moveChange[2])
+			);
+		} else if (moveChange[0] == 3) {
 			setCheck(moveChange[1]);
-			return true;
 		}
-		return false;
-	});
+	}
+}
+
+function moveEnd() {
+	while (curMoveRewatch < moveChanges.length-2) {
+		moveForward(false);
+	}
+	moveForward();
 }
 
 function setPosition(pos) {
 	pieceElements = [];
-	pieceElementsByIndex = [];
+	pieceElementsID = [];
 	for (let i=0; i<8; i++) {
 		pieceElementsRow = [];
 		for (let j=0; j<8; j++) {
@@ -84,12 +141,13 @@ function setPosition(pos) {
 				let piece = $(`<div class="chess-piece ${getPieceClass(pos.board[i][j])}"><div></div></div>`);
 				piece.css({"--row": i, "--column": j});
 				chessPieces.append(piece);
-				pieceElementsRow.push(piece);
+				pieceElementsRow.push(pieceElements.length);
+				pieceElements.push(piece);
 			} else {
-				pieceElementsRow.push(null);
+				pieceElementsRow.push(-1);
 			}
 		}
-		pieceElements.push(pieceElementsRow);
+		pieceElementsID.push(pieceElementsRow);
 	}
 
 	$(".chess-piece").draggable({
@@ -166,32 +224,29 @@ function highlightDroppableSquares(i, j) {
 
 function makeMove(fromX, fromY, toX, toY, piece=0) {
 	currentMoveChange = [];
-	currentMoveChange.push([0, fromX, fromY, toX, toY]);
+	currentMoveChange.push([0, pieceElementsID[fromX][fromY], fromX, fromY, toX, toY]);
 
-	pieceElements[fromX][fromY].css({"--row": toX, "--column": toY});
-	if (pieceElements[toX][toY]) {
-		pieceElements[toX][toY].css({"display": "none"});
-	}
 	if (Math.abs(position.board[fromX][fromY]) == 6) {
 		if (toY - fromY == 2) {
-			currentMoveChange.push([0, toX, 7, toX, 5]);
-			pieceElements[toX][7].css({"--row": toX, "--column": 5});
-			pieceElements[toX][5] = pieceElements[toX][7];
-			pieceElements[toX][7] = null;
+			currentMoveChange.push([0, pieceElementsID[toX][7], toX, 7, toX, 5]);
+			pieceElementsID[toX][5] = pieceElementsID[toX][7];
+			pieceElementsID[toX][7] = -1;
 		}
 		if (toY - fromY == -2) {
-			currentMoveChange.push([0, toX, 0, toX, 3]);
-			pieceElements[toX][0].css({"--row": toX, "--column": 3});
-			pieceElements[toX][3] = pieceElements[toX][0];
-			pieceElements[toX][0] = null;
+			currentMoveChange.push([0, pieceElementsID[toX][0], toX, 0, toX, 3]);
+			pieceElementsID[toX][3] = pieceElementsID[toX][0];
+			pieceElementsID[toX][0] = -1;
 		}
 	}
 	if (position.board[toX][toY] != 0) {
-		currentMoveChange.push([1, toX, toY]);
+		currentMoveChange.push([1, pieceElementsID[toX][toY]]);
 	}
 	if ((position.board[fromX][fromY] == 1 && toX == 7) || (position.board[fromX][fromY] == -1 && toX == 0)) {
 		promotionMove = [position.board[fromX][fromY], fromX, fromY, toX, toY];
 		if (piece == 0) {
+			if (curMoveRewatch == moveChanges.length-1) {
+				moveForward(false, true);
+			}
 			$(`#chess-promotion-${(position.board[fromX][fromY] > 0) ? "white" : "black"}`).css({
 				"display": "flex",
 				"--column": toY
@@ -214,15 +269,11 @@ function engineMakeMove() {
 }
 
 function endMakingMove(fromX, fromY, toX, toY) {
-	pieceElements[toX][toY] = pieceElements[fromX][fromY];
-	pieceElements[fromX][fromY] = null;
-	$(".chess-square").removeClass("chess-square-highlighted");
-	$(".chess-square").eq((7-fromX)*8 + fromY).addClass("chess-square-highlighted");
-	$(".chess-square").eq((7-toX)*8 + toY).addClass("chess-square-highlighted");
-	if (fromY != toY && pieceElements[fromX][toY] && position.board[fromX][toY] == 0) {
-		currentMoveChange.push([1, fromX, toY]);
-		pieceElements[fromX][toY].css({"display": "none"});
-		pieceElements[fromX][toY] = null;
+	pieceElementsID[toX][toY] = pieceElementsID[fromX][fromY];
+	pieceElementsID[fromX][fromY] = -1;
+	if (fromY != toY && pieceElementsID[fromX][toY] != -1 && position.board[fromX][toY] == 0) {
+		currentMoveChange.push([1, pieceElementsID[fromX][toY]]);
+		pieceElementsID[fromX][toY] = -1;
 	}
 	checkCheck();
 	if (position.isCheckmated()) {
@@ -241,30 +292,29 @@ function endMakingMove(fromX, fromY, toX, toY) {
 		 	//engineMakeMove();
 		}
 	}
-	curMoveRewatch++;
+	if (curMoveRewatch == moveChanges.length-2) {
+		moveForward();
+	}
 } 
 
 function makePromotion(piece) {
 	$(`#chess-promotion-${(position.board[promotionMove[1]][promotionMove[2]] > 0) ? "white" : "black"}`).css({"display": "none"});
 	let moveStr = position.getMoveNotation(promotionMove[1], promotionMove[2], promotionMove[3], promotionMove[4], piece);
 	addMoveInfo(moveStr);
-	currentMoveChange.push([2, promotionMove[1], promotionMove[2], position.board[promotionMove[1]][promotionMove[2]], piece]);
-	pieceElements[promotionMove[1]][promotionMove[2]].removeClass(
-		getPieceClass(position.board[promotionMove[1]][promotionMove[2]])
-	);
+	currentMoveChange.push([2, pieceElementsID[promotionMove[1]][promotionMove[2]], position.board[promotionMove[1]][promotionMove[2]], piece]);
 	position.makeMove(promotionMove[1], promotionMove[2], promotionMove[3], promotionMove[4], piece);
-	pieceElements[promotionMove[1]][promotionMove[2]].addClass(
-		getPieceClass(piece)
-	);
+	if (curMoveRewatch == moveChanges.length-2) {
+		moveBack(false, true);
+	}
 	endMakingMove(promotionMove[1], promotionMove[2], promotionMove[3], promotionMove[4]);
 	promotionMove = [0, -1, -1, -1, -1];
 }
 
 function cancelPromotion() {
 	$(`#chess-promotion-${(position.board[promotionMove[1]][promotionMove[2]] > 0) ? "white" : "black"}`).css({"display": "none"});
-	pieceElements[promotionMove[1]][promotionMove[2]].css({"--row": promotionMove[1], "--column": promotionMove[2]});
-	if (pieceElements[promotionMove[3]][promotionMove[4]]) {
-		pieceElements[promotionMove[3]][promotionMove[4]].css({"display": ""});
+	pieceElements[pieceElementsID[promotionMove[1]][promotionMove[2]]].css({"--row": promotionMove[1], "--column": promotionMove[2]});
+	if (pieceElementsID[promotionMove[3]][promotionMove[4]] != -1) {
+		pieceElements[pieceElementsID[promotionMove[3]][promotionMove[4]]].css({"display": ""});
 	}
 	promotionMove = [0, -1, -1, -1, -1];
 }
@@ -440,9 +490,10 @@ $(`#chess-info-restart`).on("click", function(event) {
 	$("#chess-pieces").empty();
 	$("#chess-ending").removeClass("chess-ending-visible");
 	position = startingPosition.copyPosition();
-	setPosition(position);
+	curMoveRewatch = 0;
 	currentMoveChange = [];
 	moveChanges = [];
+	setPosition(position);
 	unhighlightDroppableSquares();
 	$(".chess-square").removeClass("chess-square-highlighted");
 	$("#chess-ending").css({"pointer-events": ""});
